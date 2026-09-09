@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Manche microtonal — cartographie des maqams</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Space+Mono:wght@400;700&display=swap');
+
+:root{
+  --bg: #14100c;
+  --bg-panel: #1b1510;
+  --wood-1: #4a2d1c;
+  --wood-2: #2b1810;
+  --fretwire: #cbbfa8;
+  --qfretwire: #8a6b3f;
+  --string: #d8cdb8;
+  --parchment: #ede6d6;
+  --parchment-dim: #a89a80;
+  --gold: #e3a857;
+  --gold-ink: #2a1a08;
+  --abalone: #4fa3a0;
+  --ghammaz: #b5533c;
+  --rule: #3a2c1e;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--parchment);
+  font-family:'Space Mono', monospace;
+  padding:40px 24px 60px;
+}
+
+.wrap{max-width:980px;margin:0 auto;}
+
+header{margin-bottom:28px;}
+
+h1{
+  font-family:'Fraunces', serif;
+  font-weight:500;
+  font-size:clamp(28px,4vw,42px);
+  letter-spacing:-0.01em;
+  margin:0 0 6px;
+  color:var(--parchment);
+}
+
+.subtitle{
+  color:var(--parchment-dim);
+  font-size:13px;
+  max-width:60ch;
+  line-height:1.6;
+}
+
+.tuning{
+  margin-top:16px;
+  font-size:12px;
+  color:var(--parchment-dim);
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+  border-top:1px solid var(--rule);
+  padding-top:14px;
+}
+.tuning b{color:var(--gold);font-weight:400;}
+
+.maqam-picker{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:26px 0 8px;
+}
+
+.maqam-btn{
+  font-family:'Space Mono', monospace;
+  background:transparent;
+  border:1px solid var(--rule);
+  color:var(--parchment-dim);
+  padding:9px 16px;
+  font-size:13px;
+  cursor:pointer;
+  transition:border-color .15s, color .15s, background .15s;
+}
+.maqam-btn:hover{border-color:var(--parchment-dim);color:var(--parchment);}
+.maqam-btn.active{
+  background:var(--gold);
+  border-color:var(--gold);
+  color:var(--gold-ink);
+}
+
+.info-line{
+  min-height:22px;
+  font-size:13px;
+  color:var(--parchment-dim);
+  margin:14px 0 26px;
+  letter-spacing:.01em;
+}
+.info-line b{color:var(--parchment);font-weight:700;}
+
+.neck-panel{
+  background:linear-gradient(160deg, var(--wood-1), var(--wood-2) 70%);
+  border:1px solid var(--rule);
+  padding:28px 18px 20px;
+  overflow-x:auto;
+}
+
+svg{display:block;min-width:900px;}
+
+.fret-line{stroke:var(--fretwire);stroke-width:2;}
+.qfret-line{stroke:var(--qfretwire);stroke-width:1.3;}
+.nut-line{stroke:var(--parchment);stroke-width:5;}
+.string-line{stroke:var(--string);stroke-width:1;opacity:.55;}
+
+.string-label{
+  font-family:'Space Mono',monospace;
+  font-size:12px;
+  fill:var(--parchment-dim);
+}
+
+.fret-num{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  fill:var(--parchment-dim);
+}
+
+.note-dot{
+  stroke:var(--fretwire);
+  stroke-width:1;
+  fill:var(--wood-2);
+  transition:fill .15s, r .15s;
+}
+.note-dot.qtone{fill:var(--wood-1);}
+.note-dot.match{
+  fill:var(--gold);
+  stroke:var(--gold-ink);
+  stroke-width:1.2;
+}
+.note-dot.tonic{
+  fill:var(--abalone);
+  stroke:var(--gold-ink);
+  stroke-width:1.6;
+}
+.note-dot.ghammaz{
+  fill:var(--ghammaz);
+  stroke:var(--gold-ink);
+  stroke-width:1.6;
+}
+
+.note-text{
+  font-family:'Space Mono',monospace;
+  font-size:13px;
+  fill:var(--parchment-dim);
+  text-anchor:middle;
+  pointer-events:none;
+}
+.note-text.match, .note-text.tonic, .note-text.ghammaz{fill:var(--gold-ink);font-weight:700;}
+
+.legend{
+  display:flex;
+  gap:26px;
+  flex-wrap:wrap;
+  margin-top:22px;
+  font-size:11.5px;
+  color:var(--parchment-dim);
+}
+.legend span{display:inline-flex;align-items:center;gap:7px;}
+.swatch{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid var(--fretwire);}
+.sw-default{background:var(--wood-2);}
+.sw-match{background:var(--gold);border-color:var(--gold-ink);}
+.sw-tonic{background:var(--abalone);border-color:var(--gold-ink);}
+.sw-ghammaz{background:var(--ghammaz);border-color:var(--gold-ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Cartographie du manche — quarts de ton</h1>
+    <div class="subtitle">Guitare à frettage microtonal personnalisé. Sélectionne un maqam pour voir ses notes s'allumer sur le manche, corde par corde, sur l'octave complète.</div>
+    <div class="tuning" id="tuning"></div>
+  </header>
+
+  <div class="maqam-picker" id="picker"></div>
+  <div class="info-line" id="info">Aucun maqam sélectionné — toutes les notes du manche sont affichées.</div>
+
+  <div class="neck-panel">
+    <svg id="neck" viewBox="0 0 940 300"></svg>
+  </div>
+
+  <div class="legend">
+    <span><i class="swatch sw-match"></i>note du maqam</span>
+    <span><i class="swatch sw-tonic"></i>tonique</span>
+    <span><i class="swatch sw-ghammaz"></i>ghammaz</span>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  "frets": [0,1,1.5,2,3,3.5,4,4.5,5,6,6.5,7,8,8.5,9,10,10.5,11,12],
+  "string_labels": ["Mi","Si","Fa# (2)","Do# (2)","Fa#","Do#"],
+  "strings": [
+    ["E","F","F¼","F#","G","G¼","G#","G#¼","A","A#","A#¼","B","C","C¼","C#","D","D¼","D#","E"],
+    ["B","C","C¼","C#","D","D¼","D#","D#¼","E","F","F¼","F#","G","G¼","G#","A","A¼","A#","B"],
+    ["F#","G","G¼","G#","A","A¼","A#","A#¼","B","C","C¼","C#","D","D¼","D#","E","E¼","F","F#"],
+    ["C#","D","D¼","D#","E","E¼","F","F¼","F#","G","G¼","G#","A","A¼","A#","B","B¼","C","C#"],
+    ["F#","G","G¼","G#","A","A¼","A#","A#¼","B","C","C¼","C#","D","D¼","D#","E","E¼","F","F#"],
+    ["C#","D","D¼","D#","E","E¼","F","F¼","F#","G","G¼","G#","A","A¼","A#","B","B¼","C","C#"]
+  ],
+  "maqams": [
+    {"name":"Rast","notes":["C","D","D#½","F","G","A","A#½","C"],"vals":[0,2,3.5,5,7,9,10.5],"formula":"1 – 1 – ¾ – ½ – 1 – 1 – ¾"},
+    {"name":"Bayati","notes":["D","D#½","F","G","A","A#","C","D"],"vals":[2,3.5,5,7,9,10,0],"formula":"¾ – ¾ – 1 – 1 – ¾ – 1 – 1"},
+    {"name":"Hijaz","notes":["D","D#","F#","G","A","A#","C","D"],"vals":[2,3,6,7,9,10,0],"formula":"½ – 1½ – ½ – 1 – ½ – 1 – 1"},
+    {"name":"Nahawand","notes":["C","D","D#","F","G","G#","A#","C"],"vals":[0,2,3,5,7,8,10],"formula":"1 – ½ – 1 – 1 – ½ – 1 – 1"},
+    {"name":"Ajam","notes":["C","D","E","F","G","A","B","C"],"vals":[0,2,4,5,7,9,11],"formula":"1 – 1 – ½ – 1 – 1 – 1 – ½"},
+    {"name":"Kurd","notes":["D","D#","F","G","A","A#","C","D"],"vals":[2,3,5,7,9,10,0],"formula":"½ – 1 – 1 – 1 – ½ – 1 – 1"},
+    {"name":"Saba","notes":["D","D#½","F","F#","A","A#","C","D"],"vals":[2,3.5,5,6,9,10,0],"formula":"¾ – ¾ – ½ – 1½ – ½ – 1 – 1"},
+    {"name":"Sikah","notes":["D#½","F","G","A","A#½","C","D","D#½"],"vals":[3.5,5,7,9,10.5,0,2],"formula":"¾ – 1 – 1 – 1 – ¾ – 1 – 1"},
+    {"name":"Nikriz","notes":["C","D","D#","F#","G","A","A#","C"],"vals":[0,2,3,6,7,9,10],"formula":"1 – ½ – 1½ – ½ – 1 – ½ – 1½"}
+  ]
+};
+
+const BASE = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+function noteVal(s){
+  let q = s.endsWith('¼');
+  if(q) s = s.slice(0,-1);
+  let v = BASE[s[0]];
+  if(s.length>1 && s[1]==='#') v += 1;
+  if(q) v += 0.5;
+  return v % 12;
+}
+
+// --- layout geometry (real fret-spacing formula) ---
+const svg = document.getElementById('neck');
+const W = 1120, H = 420;
+const marginL = 90, marginR = 40, marginT = 40, marginB = 40;
+const neckW = W - marginL - marginR;
+const neckH = H - marginT - marginB;
+const nStrings = DATA.strings.length;
+const stringGap = neckH / (nStrings - 1);
+
+// Formule classique (case standard, n = numéro de case en demi-tons depuis le sillet)
+function posClassic(n){ return 1 - Math.pow(2, -n/12); }
+// Formule quart de ton (n = index en 24-EDO depuis le sillet, n = 2*case_avant + 1)
+function posQuarter(n){ return 1 - Math.pow(2, -n/24); }
+
+const octaveNorm = posClassic(12); // = 0.5, pour normaliser sur l'octave affichée
+
+function posFrac(n){
+  const isQuarter = n % 1 !== 0;
+  const raw = isQuarter ? posQuarter(2*n) : posClassic(n);
+  return raw / octaveNorm;
+}
+function x(n){ return marginL + posFrac(n) * neckW; }
+
+// Centre de la "case" : milieu entre la frette précédente (dans l'ordre du manche) et la frette n.
+// La case 0 (corde à vide) reste positionnée sur le sillet.
+const fretIndex = new Map(DATA.frets.map((n,i)=>[n,i]));
+function caseCenterX(n){
+  if(n === 0) return x(0);
+  const i = fretIndex.get(n);
+  const prev = DATA.frets[i-1];
+  return (x(prev) + x(n)) / 2;
+}
+function y(i){ return marginT + i * stringGap; }
+
+let currentMaqam = null;
+
+function render(){
+  const parts = [];
+
+  // nut
+  parts.push(`<line class="nut-line" x1="${x(0)}" y1="${marginT-6}" x2="${x(0)}" y2="${marginT+neckH+6}"/>`);
+
+  // frets
+  const seen = new Set();
+  DATA.frets.forEach(n=>{
+    if(n===0) return;
+    const isQ = n % 1 !== 0;
+    const cls = isQ ? 'qfret-line' : 'fret-line';
+    parts.push(`<line class="${cls}" x1="${x(n)}" y1="${marginT-6}" x2="${x(n)}" y2="${marginT+neckH+6}"/>`);
+  });
+
+  // fret numbers (integers only, below)
+  [0,1,2,3,4,5,6,7,8,9,10,11,12].forEach(n=>{
+    parts.push(`<text class="fret-num" x="${caseCenterX(n)}" y="${marginT+neckH+30}" text-anchor="middle">${n}</text>`);
+  });
+
+  // string lines + labels
+  DATA.strings.forEach((row,i)=>{
+    parts.push(`<line class="string-line" x1="${x(0)}" y1="${y(i)}" x2="${x(12)}" y2="${y(i)}"/>`);
+    parts.push(`<text class="string-label" x="${marginL-14}" y="${y(i)+4}" text-anchor="end">${DATA.string_labels[i]}</text>`);
+  });
+
+  // note dots
+  const maqam = currentMaqam ? DATA.maqams.find(m=>m.name===currentMaqam) : null;
+  const tonicVal = maqam ? noteVal(maqam.notes[0].replace('½','¼')) : null;
+  // Ghammaz : 5e degré de la gamme (index 4), convention par défaut
+  const ghammazVal = (maqam && maqam.notes.length > 4) ? noteVal(maqam.notes[4].replace('½','¼')) : null;
+
+  DATA.strings.forEach((row,i)=>{
+    DATA.frets.forEach((n,fi)=>{
+      const label = row[fi];
+      const isQ = n % 1 !== 0;
+      const v = noteVal(label);
+      let match = false, isTonic = false, isGhammaz = false;
+      if(maqam){
+        match = maqam.vals.some(mv => Math.abs(mv - v) < 0.01);
+        isTonic = Math.abs(v - tonicVal) < 0.01 && match;
+        isGhammaz = !isTonic && ghammazVal !== null && Math.abs(v - ghammazVal) < 0.01 && match;
+      }
+      const r = isQ ? 13.6 : 16.8;
+      let cls = 'note-dot' + (isQ ? ' qtone' : '') + (match ? ' match' : '') + (isTonic ? ' tonic' : '') + (isGhammaz ? ' ghammaz' : '');
+      let tcls = 'note-text' + (match ? ' match' : '') + (isTonic ? ' tonic' : '') + (isGhammaz ? ' ghammaz' : '');
+      const cx = caseCenterX(n);
+      parts.push(`<circle class="${cls}" cx="${cx}" cy="${y(i)}" r="${r}"/>`);
+      parts.push(`<text class="${tcls}" x="${cx}" y="${y(i)+4.6}">${label.replace('¼','q')}</text>`);
+    });
+  });
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = parts.join('');
+}
+
+// picker buttons
+const picker = document.getElementById('picker');
+DATA.maqams.forEach(m=>{
+  const btn = document.createElement('button');
+  btn.className = 'maqam-btn';
+  btn.textContent = m.name;
+  btn.onclick = () => {
+    currentMaqam = (currentMaqam === m.name) ? null : m.name;
+    document.querySelectorAll('.maqam-btn').forEach(b=>b.classList.remove('active'));
+    if(currentMaqam) btn.classList.add('active');
+    updateInfo();
+    render();
+  };
+  picker.appendChild(btn);
+});
+
+function updateInfo(){
+  const info = document.getElementById('info');
+  if(!currentMaqam){
+    info.innerHTML = 'Aucun maqam sélectionné — toutes les notes du manche sont affichées.';
+    return;
+  }
+  const m = DATA.maqams.find(x=>x.name===currentMaqam);
+  info.innerHTML = `<b>${m.name}</b> — ${m.notes.join(' – ')} &nbsp;·&nbsp; formule : ${m.formula}`;
+}
+
+// tuning line
+const tuning = document.getElementById('tuning');
+const openNotes = DATA.strings.map(r=>r[0]);
+tuning.innerHTML = 'Accordage : ' + openNotes.map(n=>`<b>${n}</b>`).join(' &nbsp; ');
+
+updateInfo();
+render();
+</script>
+</body>
+</html>
