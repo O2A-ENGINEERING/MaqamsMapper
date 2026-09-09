@@ -12,7 +12,7 @@
   --wood-1: #4b5356;
   --wood-2: #1e2528;
   --fretwire: #cbbfa8;
-  --qfretwire: #8a6b3f;
+  --qfretwire: var(--fretwire);
   --string: #d8cdb8;
   --parchment: #ede6d6;
   --parchment-dim: #a89a80;
@@ -371,11 +371,11 @@ DATA.maqams.forEach(m=>{
 function updateInfo(){
   const info = document.getElementById('info');
   if(!currentMaqam){
-    info.innerHTML = 'Aucun maqam sélectionné — toutes les notes du manche sont affichées.';
+    info.innerHTML = 'No maqam selected — all notes on the fretboard are displayed.';
     return;
   }
   const m = DATA.maqams.find(x=>x.name===currentMaqam);
-  info.innerHTML = `<b>${m.name}</b> — ${m.notes.join(' – ')} &nbsp;·&nbsp; formule : ${m.formula}`;
+  info.innerHTML = `<b>${m.name}</b> — ${m.notes.join(' – ')} &nbsp;·&nbsp; Intervals : ${m.formula}`;
 }
 
 // tuning selector
