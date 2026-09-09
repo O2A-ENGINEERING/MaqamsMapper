@@ -7,10 +7,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Space+Mono:wght@400;700&display=swap');
 
 :root{
-  --bg: #14100c;
-  --bg-panel: #1b1510;
-  --wood-1: #4a2d1c;
-  --wood-2: #2b1810;
+  --bg: #fff8ed;
+  --bg-panel: #fff1df;
+  --wood-1: #4b5356;
+  --wood-2: #1e2528;
   --fretwire: #cbbfa8;
   --qfretwire: #8a6b3f;
   --string: #d8cdb8;
@@ -20,20 +20,20 @@
   --gold-ink: #2a1a08;
   --abalone: #4fa3a0;
   --ghammaz: #b5533c;
-  --rule: #3a2c1e;
+  --rule: #dec6ae;
 }
 
 *{box-sizing:border-box;}
 
 body{
   margin:0;
-  background:var(--bg);
+  background:linear-gradient(160deg, var(--wood-1), var(--wood-2) 70%);
   color:var(--parchment);
   font-family:'Space Mono', monospace;
   padding:40px 24px 60px;
 }
 
-.wrap{max-width:980px;margin:0 auto;}
+.wrap{max-width:1200px;margin:0 auto;}
 
 header{margin-bottom:28px;}
 
@@ -102,10 +102,10 @@ h1{
   background:linear-gradient(160deg, var(--wood-1), var(--wood-2) 70%);
   border:1px solid var(--rule);
   padding:28px 18px 20px;
-  overflow-x:auto;
+  overflow-x:hidden;
 }
 
-svg{display:block;min-width:900px;}
+svg{display:block;width:100%;min-width:0;height:auto;}
 
 .fret-line{stroke:var(--fretwire);stroke-width:2;}
 .qfret-line{stroke:var(--qfretwire);stroke-width:1.3;}
@@ -175,8 +175,7 @@ svg{display:block;min-width:900px;}
 <body>
 <div class="wrap">
   <header>
-    <h1>Cartographie du manche — quarts de ton</h1>
-    <div class="subtitle">Guitare à frettage microtonal personnalisé. Sélectionne un maqam pour voir ses notes s'allumer sur le manche, corde par corde, sur l'octave complète.</div>
+    <h1>Microtonal Guitar Mapping</h1>
     <div class="tuning" id="tuning"></div>
   </header>
 
@@ -184,7 +183,7 @@ svg{display:block;min-width:900px;}
   <div class="info-line" id="info">Aucun maqam sélectionné — toutes les notes du manche sont affichées.</div>
 
   <div class="neck-panel">
-    <svg id="neck" viewBox="0 0 940 300"></svg>
+    <svg id="neck" viewBox="0 0 1344 420"></svg>
   </div>
 
   <div class="legend">
@@ -231,7 +230,7 @@ function noteVal(s){
 
 // --- layout geometry (real fret-spacing formula) ---
 const svg = document.getElementById('neck');
-const W = 1120, H = 420;
+const W = 1344, H = 420;
 const marginL = 90, marginR = 40, marginT = 40, marginB = 40;
 const neckW = W - marginL - marginR;
 const neckH = H - marginT - marginB;
@@ -288,7 +287,6 @@ function render(){
   // string lines + labels
   DATA.strings.forEach((row,i)=>{
     parts.push(`<line class="string-line" x1="${x(0)}" y1="${y(i)}" x2="${x(12)}" y2="${y(i)}"/>`);
-    parts.push(`<text class="string-label" x="${marginL-14}" y="${y(i)+4}" text-anchor="end">${DATA.string_labels[i]}</text>`);
   });
 
   // note dots
