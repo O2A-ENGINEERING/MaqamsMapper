@@ -33,7 +33,7 @@ body{
   padding:40px 24px 60px;
 }
 
-.wrap{max-width:1200px;margin:0 auto;}
+.wrap{max-width:1440px;margin:0 auto;}
 
 header{margin-bottom:28px;}
 
@@ -132,6 +132,13 @@ svg{display:block;width:100%;min-width:0;height:auto;}
   fill:var(--parchment-dim);
 }
 
+.fret-inlay{
+  fill:var(--parchment);
+  stroke:var(--parchment);
+  stroke-width:1;
+  opacity:1;
+}
+
 .note-dot{
   stroke:var(--fretwire);
   stroke-width:1;
@@ -157,11 +164,12 @@ svg{display:block;width:100%;min-width:0;height:auto;}
 
 .note-text{
   font-family:'Space Mono',monospace;
-  font-size:13px;
+  font-size:15.6px;
   fill:var(--parchment-dim);
   text-anchor:middle;
   pointer-events:none;
 }
+.quarter-mark{font-size:9.6px;}
 .note-text.match, .note-text.tonic, .note-text.ghammaz{fill:var(--gold-ink);font-weight:700;}
 
 .legend{
@@ -197,7 +205,7 @@ svg{display:block;width:100%;min-width:0;height:auto;}
   <div class="info-line" id="info">No maqam selected — all notes on the fretboard are displayed.</div>
 
   <div class="neck-panel">
-    <svg id="neck" viewBox="0 0 1344 420"></svg>
+    <svg id="neck" viewBox="0 0 1613 450"></svg>
   </div>
 
   <div class="legend">
@@ -262,8 +270,8 @@ function stringsForCurrentTuning(){
 
 // --- layout geometry (real fret-spacing formula) ---
 const svg = document.getElementById('neck');
-const W = 1344, H = 420;
-const marginL = 90, marginR = 40, marginT = 40, marginB = 40;
+const W = 1613, H = 450;
+const marginL = 90, marginR = 40, marginT = 40, marginB = 70;
 const neckW = W - marginL - marginR;
 const neckH = H - marginT - marginB;
 const nStrings = DATA.strings.length;
@@ -301,7 +309,9 @@ function render(){
   const strings = stringsForCurrentTuning();
 
   // nut
-  parts.push(`<line class="nut-line" x1="${x(0)}" y1="${marginT-6}" x2="${x(0)}" y2="${marginT+neckH+6}"/>`);
+  parts.push(`<line class="nut-line" x1="${x(0)}" y1="${marginT-14}" x2="${x(0)}" y2="${marginT+neckH+14}"/>`);
+  parts.push(`<line class="nut-line" x1="${x(0)}" y1="${marginT-14}" x2="${x(12)}" y2="${marginT-14}"/>`);
+  parts.push(`<line class="nut-line" x1="${x(0)}" y1="${marginT+neckH+14}" x2="${x(12)}" y2="${marginT+neckH+14}"/>`);
 
   // frets
   const seen = new Set();
@@ -309,12 +319,20 @@ function render(){
     if(n===0) return;
     const isQ = n % 1 !== 0;
     const cls = isQ ? 'qfret-line' : 'fret-line';
-    parts.push(`<line class="${cls}" x1="${x(n)}" y1="${marginT-6}" x2="${x(n)}" y2="${marginT+neckH+6}"/>`);
+    parts.push(`<line class="${cls}" x1="${x(n)}" y1="${marginT-14}" x2="${x(n)}" y2="${marginT+neckH+14}"/>`);
+  });
+
+  // Repères centraux inspirés des inlays d'un manche classique.
+  [3,5,7,9].forEach(n=>{
+    parts.push(`<circle class="fret-inlay" cx="${caseCenterX(n)}" cy="${marginT + neckH / 2}" r="10.8"/>`);
+  });
+  [caseCenterX(12) - 18, caseCenterX(12) + 18].forEach(centerX=>{
+    parts.push(`<circle class="fret-inlay" cx="${centerX}" cy="${marginT + neckH / 2}" r="10.8"/>`);
   });
 
   // fret numbers (integers only, below)
   [0,1,2,3,4,5,6,7,8,9,10,11,12].forEach(n=>{
-    parts.push(`<text class="fret-num" x="${caseCenterX(n)}" y="${marginT+neckH+30}" text-anchor="middle">${n}</text>`);
+    parts.push(`<text class="fret-num" x="${caseCenterX(n)}" y="${marginT+neckH+40}" text-anchor="middle">${n}</text>`);
   });
 
   // string lines + labels
@@ -339,12 +357,13 @@ function render(){
         isTonic = Math.abs(v - tonicVal) < 0.01 && match;
         isGhammaz = !isTonic && ghammazVal !== null && Math.abs(v - ghammazVal) < 0.01 && match;
       }
-      const r = isQ ? 13.6 : 16.8;
+      const r = 24.192;
       let cls = 'note-dot' + (isQ ? ' qtone' : '') + (match ? ' match' : '') + (isTonic ? ' tonic' : '') + (isGhammaz ? ' ghammaz' : '');
       let tcls = 'note-text' + (match ? ' match' : '') + (isTonic ? ' tonic' : '') + (isGhammaz ? ' ghammaz' : '');
       const cx = caseCenterX(n);
       parts.push(`<circle class="${cls}" cx="${cx}" cy="${y(i)}" r="${r}"/>`);
-      parts.push(`<text class="${tcls}" x="${cx}" y="${y(i)+4.6}">${label.replace('¼','q')}</text>`);
+      const displayLabel = label.replace('¼', '<tspan class="quarter-mark" dy="-4">1/4</tspan>');
+      parts.push(`<text class="${tcls}" x="${cx}" y="${y(i)+4.6}">${displayLabel}</text>`);
     });
   });
 
