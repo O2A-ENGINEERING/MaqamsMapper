@@ -64,6 +64,14 @@ h1{
   padding-top:14px;
 }
 .tuning b{color:var(--gold);font-weight:400;}
+.tuning label{color:var(--parchment-dim);}
+.tuning select{
+  font:inherit;
+  color:var(--parchment);
+  background:var(--wood-2);
+  border:1px solid var(--rule);
+  padding:6px 10px;
+}
 
 .maqam-picker{
   display:flex;
@@ -176,11 +184,17 @@ svg{display:block;width:100%;min-width:0;height:auto;}
 <div class="wrap">
   <header>
     <h1>Microtonal Guitar Mapping</h1>
-    <div class="tuning" id="tuning"></div>
+    <div class="tuning">
+      <label for="tuning-select">Tuning :</label>
+      <select id="tuning-select">
+        <option value="custom">Flying Microtonal Banana — E B F# C# F# C#</option>
+        <option value="standard">Standard — E B G D A E</option>
+      </select>
+    </div>
   </header>
 
   <div class="maqam-picker" id="picker"></div>
-  <div class="info-line" id="info">Aucun maqam sélectionné — toutes les notes du manche sont affichées.</div>
+  <div class="info-line" id="info">No maqam selected — all notes on the fretboard are displayed.</div>
 
   <div class="neck-panel">
     <svg id="neck" viewBox="0 0 1344 420"></svg>
@@ -228,6 +242,24 @@ function noteVal(s){
   return v % 12;
 }
 
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const STANDARD_OPEN_NOTES = ['E','B','G','D','A','E'];
+let currentTuning = 'custom';
+
+function noteLabel(openNote, offset){
+  const value = (noteVal(openNote) + offset) % 12;
+  const semitone = Math.floor(value + 0.01) % 12;
+  const isQuarter = Math.abs(value - semitone - 0.5) < 0.01;
+  return NOTE_NAMES[semitone] + (isQuarter ? '¼' : '');
+}
+
+function stringsForCurrentTuning(){
+  if(currentTuning === 'standard'){
+    return STANDARD_OPEN_NOTES.map(openNote => DATA.frets.map(fret => noteLabel(openNote, fret)));
+  }
+  return DATA.strings;
+}
+
 // --- layout geometry (real fret-spacing formula) ---
 const svg = document.getElementById('neck');
 const W = 1344, H = 420;
@@ -266,6 +298,7 @@ let currentMaqam = null;
 
 function render(){
   const parts = [];
+  const strings = stringsForCurrentTuning();
 
   // nut
   parts.push(`<line class="nut-line" x1="${x(0)}" y1="${marginT-6}" x2="${x(0)}" y2="${marginT+neckH+6}"/>`);
@@ -285,7 +318,7 @@ function render(){
   });
 
   // string lines + labels
-  DATA.strings.forEach((row,i)=>{
+  strings.forEach((row,i)=>{
     parts.push(`<line class="string-line" x1="${x(0)}" y1="${y(i)}" x2="${x(12)}" y2="${y(i)}"/>`);
   });
 
@@ -295,7 +328,7 @@ function render(){
   // Ghammaz : 5e degré de la gamme (index 4), convention par défaut
   const ghammazVal = (maqam && maqam.notes.length > 4) ? noteVal(maqam.notes[4].replace('½','¼')) : null;
 
-  DATA.strings.forEach((row,i)=>{
+  strings.forEach((row,i)=>{
     DATA.frets.forEach((n,fi)=>{
       const label = row[fi];
       const isQ = n % 1 !== 0;
@@ -345,10 +378,12 @@ function updateInfo(){
   info.innerHTML = `<b>${m.name}</b> — ${m.notes.join(' – ')} &nbsp;·&nbsp; formule : ${m.formula}`;
 }
 
-// tuning line
-const tuning = document.getElementById('tuning');
-const openNotes = DATA.strings.map(r=>r[0]);
-tuning.innerHTML = 'Accordage : ' + openNotes.map(n=>`<b>${n}</b>`).join(' &nbsp; ');
+// tuning selector
+const tuningSelect = document.getElementById('tuning-select');
+tuningSelect.addEventListener('change', () => {
+  currentTuning = tuningSelect.value;
+  render();
+});
 
 updateInfo();
 render();
