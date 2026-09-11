@@ -29,7 +29,7 @@ body{
   margin:0;
   background:linear-gradient(160deg, var(--wood-1), var(--wood-2) 70%);
   color:var(--parchment);
-  font-family:'Space Mono', monospace;
+  font-family:Calibri, sans-serif;
   padding:40px 24px 60px;
 }
 
@@ -38,7 +38,7 @@ body{
 header{margin-bottom:28px;}
 
 h1{
-  font-family:'Fraunces', serif;
+  font-family:Calibri, sans-serif;
   font-weight:500;
   font-size:clamp(28px,4vw,42px);
   letter-spacing:-0.01em;
@@ -70,8 +70,40 @@ h1{
   color:var(--parchment);
   background:var(--wood-2);
   border:1px solid var(--rule);
+  border-radius:8px;
   padding:6px 10px;
 }
+.text-rotation-toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;}
+.text-rotation-toggle input{position:absolute;opacity:0;pointer-events:none;}
+.text-toggle-track{
+  position:relative;
+  width:36px;
+  height:20px;
+  border:1px solid var(--rule);
+  border-radius:10px;
+  background:var(--wood-2);
+  transition:background .15s, border-color .15s;
+}
+.text-toggle-track::after{
+  content:'';
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:var(--parchment-dim);
+  transition:transform .15s, background .15s;
+}
+.text-rotation-toggle input:checked + .text-toggle-track{
+  border-color:var(--gold);
+  background:var(--gold);
+}
+.text-rotation-toggle input:checked + .text-toggle-track::after{
+  transform:translateX(16px);
+  background:var(--gold-ink);
+}
+.text-rotation-toggle input:focus-visible + .text-toggle-track{outline:2px solid var(--parchment);outline-offset:3px;}
 
 .maqam-picker{
   display:flex;
@@ -81,9 +113,10 @@ h1{
 }
 
 .maqam-btn{
-  font-family:'Space Mono', monospace;
+  font-family:Calibri, sans-serif;
   background:transparent;
   border:1px solid var(--rule);
+  border-radius:8px;
   color:var(--parchment-dim);
   padding:9px 16px;
   font-size:13px;
@@ -109,8 +142,53 @@ h1{
 .neck-panel{
   background:linear-gradient(160deg, var(--wood-1), var(--wood-2) 70%);
   border:1px solid var(--rule);
+  border-radius:8px;
   padding:28px 18px 20px;
   overflow-x:hidden;
+  position:relative;
+}
+.neck-title{
+  min-height:28px;
+  margin-bottom:10px;
+  color:var(--gold);
+  font-size:18px;
+  font-weight:700;
+  text-align:center;
+}
+body.rotate-text-ccw .neck-title{
+  position:static;
+  grid-column:1;
+  grid-row:1;
+  min-height:0;
+  margin:0;
+  transform:rotate(-90deg) scale(1.2);
+  transform-origin:center;
+  white-space:nowrap;
+  justify-self:center;
+}
+body.rotate-text-ccw .legend{
+  position:static;
+  grid-column:3;
+  grid-row:1;
+  margin:0;
+  flex-wrap:nowrap;
+  white-space:nowrap;
+  transform:rotate(-90deg) scale(1.2);
+  transform-origin:center;
+  justify-self:center;
+}
+body.rotate-text-ccw .neck-panel{
+  display:grid;
+  grid-template-columns:170px minmax(0,1fr) 170px;
+  column-gap:12px;
+  align-items:center;
+  padding:78px 18px 70px;
+}
+body.rotate-text-ccw #neck{
+  grid-column:2;
+  grid-row:1;
+  transform:scale(1.2);
+  transform-origin:center;
 }
 
 svg{display:block;width:100%;min-width:0;height:auto;}
@@ -121,15 +199,21 @@ svg{display:block;width:100%;min-width:0;height:auto;}
 .string-line{stroke:var(--string);stroke-width:1;opacity:.55;}
 
 .string-label{
-  font-family:'Space Mono',monospace;
+  font-family:Calibri, sans-serif;
   font-size:12px;
   fill:var(--parchment-dim);
 }
 
 .fret-num{
-  font-family:'Space Mono',monospace;
+  font-family:Calibri, sans-serif;
   font-size:10px;
   fill:var(--parchment-dim);
+}
+body.rotate-text-ccw #neck .note-text,
+body.rotate-text-ccw #neck .fret-num{
+  transform:rotate(-90deg);
+  transform-box:fill-box;
+  transform-origin:center;
 }
 
 .fret-inlay{
@@ -163,7 +247,7 @@ svg{display:block;width:100%;min-width:0;height:auto;}
 }
 
 .note-text{
-  font-family:'Space Mono',monospace;
+  font-family:Calibri, sans-serif;
   font-size:15.6px;
   fill:var(--parchment-dim);
   text-anchor:middle;
@@ -198,6 +282,11 @@ svg{display:block;width:100%;min-width:0;height:auto;}
         <option value="custom">Flying Microtonal Banana — E B F# C# F# C#</option>
         <option value="standard">Standard — E B G D A E</option>
       </select>
+      <label class="text-rotation-toggle" for="text-rotation-select">
+        <input type="checkbox" id="text-rotation-select">
+        <span class="text-toggle-track" aria-hidden="true"></span>
+        <span>Texte -90°</span>
+      </label>
     </div>
   </header>
 
@@ -205,13 +294,13 @@ svg{display:block;width:100%;min-width:0;height:auto;}
   <div class="info-line" id="info">No maqam selected — all notes on the fretboard are displayed.</div>
 
   <div class="neck-panel">
+    <div class="neck-title" id="neck-title" aria-live="polite"></div>
     <svg id="neck" viewBox="0 0 1613 450"></svg>
-  </div>
-
-  <div class="legend">
-    <span><i class="swatch sw-match"></i>note du maqam</span>
-    <span><i class="swatch sw-tonic"></i>tonique</span>
-    <span><i class="swatch sw-ghammaz"></i>ghammaz</span>
+    <div class="legend">
+      <span><i class="swatch sw-match"></i>maqam notes</span>
+      <span><i class="swatch sw-tonic"></i>root note</span>
+      <span><i class="swatch sw-ghammaz"></i>ghammaz</span>
+    </div>
   </div>
 </div>
 
@@ -389,11 +478,14 @@ DATA.maqams.forEach(m=>{
 
 function updateInfo(){
   const info = document.getElementById('info');
+  const neckTitle = document.getElementById('neck-title');
   if(!currentMaqam){
+    neckTitle.textContent = '';
     info.innerHTML = 'No maqam selected — all notes on the fretboard are displayed.';
     return;
   }
   const m = DATA.maqams.find(x=>x.name===currentMaqam);
+  neckTitle.textContent = m.name;
   info.innerHTML = `<b>${m.name}</b> — ${m.notes.join(' – ')} &nbsp;·&nbsp; Intervals : ${m.formula}`;
 }
 
@@ -402,6 +494,11 @@ const tuningSelect = document.getElementById('tuning-select');
 tuningSelect.addEventListener('change', () => {
   currentTuning = tuningSelect.value;
   render();
+});
+
+const textRotationSelect = document.getElementById('text-rotation-select');
+textRotationSelect.addEventListener('change', () => {
+  document.body.classList.toggle('rotate-text-ccw', textRotationSelect.checked);
 });
 
 updateInfo();
